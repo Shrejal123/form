@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multi-Step Form</title>
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        margin: 0;
+      }
+      .form-container {
+        background: white;
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        width: 350px;
+        text-align: center;
+        transition: 0.3s;
+      }
+      .form-container:hover {
+        transform: scale(1.02);
+      }
+      .form-step {
+        display: none;
+      }
+      .form-step.active {
+        display: block;
+      }
+      button {
+        margin-top: 15px;
+        padding: 10px 15px;
+        border: none;
+        background: linear-gradient(135deg, #ff9966, #ff5e62);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: linear-gradient(135deg, #ff5e62, #ff9966);
+        transform: scale(1.05);
+      }
+      input,
+      select {
+        width: 90%;
+        padding: 8px;
+        margin: 8px 0;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+      }
+      h2 {
+        color: #333;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="form-container">
+      <form id="multiStepForm" onsubmit="handleSubmit(event)">
+        <!-- Step 1: Basic Details -->
+        <div class="form-step active" id="step1">
+          <h2>Step 1: Basic Details</h2>
+          <input type="text" id="name" placeholder="Name" required />
+          <input type="date" id="dob" required />
+          <select id="gender" required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+          <button type="button" onclick="nextStep(1)">Next</button>
+        </div>
+
+        <!-- Step 2: Contact Information -->
+        <div class="form-step" id="step2">
+          <h2>Step 2: Contact Information</h2>
+          <input type="email" id="email" placeholder="Email" required />
+          <input type="tel" id="phone" placeholder="Phone" required />
+          <input type="text" id="address" placeholder="Address" required />
+          <button type="button" onclick="prevStep(2)">Back</button>
+          <button type="button" onclick="nextStep(2)">Next</button>
+        </div>
+
+        <!-- Step 3: Summary -->
+        <div class="form-step" id="step3">
+          <h2>Step 3: Summary</h2>
+          <p><strong>Name:</strong> <span id="summary-name"></span></p>
+          <p><strong>Date of Birth:</strong> <span id="summary-dob"></span></p>
+          <p><strong>Gender:</strong> <span id="summary-gender"></span></p>
+          <p><strong>Email:</strong> <span id="summary-email"></span></p>
+          <p><strong>Phone:</strong> <span id="summary-phone"></span></p>
+          <p><strong>Address:</strong> <span id="summary-address"></span></p>
+          <button type="button" onclick="prevStep(3)">Back</button>
+          <button type="submit">Submit</button>
+        </div>
+      </form>
+    </div>
+    <script>
+      document
+        .getElementById("multiStepForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault(); // Prevent form from reloading
+          saveFormData(); // Save final form data in localStorage
+          // alert("Form submitted successfully! Data is saved.");
+        });
+
+      let currentStep = parseInt(localStorage.getItem("currentStep")) || 1;
+      function showStep(step) {
+        document
+          .querySelectorAll(".form-step")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById(`step${step}`).classList.add("active");
+        localStorage.setItem("currentStep", step);
+      }
+      function handleSubmit(event) {
+        event.preventDefault(); // Prevent form submission
+        alert("Form submitted successfully! Data is saved.");
+        localStorage.removeItem("formData"); // Clear stored data
+        localStorage.removeItem("currentStep");
+      }
+
+      function nextStep(step) {
+        if (validateStep(step)) {
+          saveFormData();
+          currentStep++;
+          updateSummary();
+          showStep(currentStep);
+        }
+      }
+      function prevStep(step) {
+        currentStep--;
+        showStep(currentStep);
+      }
+      function validateStep(step) {
+        let valid = true;
+        document
+          .querySelectorAll(`#step${step} input, #step${step} select`)
+          .forEach((input) => {
+            if (!input.value) {
+              valid = false;
+              input.style.border = "2px solid red";
+            } else {
+              input.style.border = "";
+            }
+          });
+        return valid;
+      }
+      function saveFormData() {
+        const formData = {
+          name: document.getElementById("name").value,
+          dob: document.getElementById("dob").value,
+          gender: document.getElementById("gender").value,
+          email: document.getElementById("email").value,
+          phone: document.getElementById("phone").value,
+          address: document.getElementById("address").value,
+        };
+        localStorage.setItem("formData", JSON.stringify(formData));
+      }
+      function loadFormData() {
+        const savedData = JSON.parse(localStorage.getItem("formData"));
+        if (savedData) {
+          document.getElementById("name").value = savedData.name;
+          document.getElementById("dob").value = savedData.dob;
+          document.getElementById("gender").value = savedData.gender;
+          document.getElementById("email").value = savedData.email;
+          document.getElementById("phone").value = savedData.phone;
+          document.getElementById("address").value = savedData.address;
+        }
+      }
+      function updateSummary() {
+        loadFormData();
+        document.getElementById("summary-name").innerText =
+          document.getElementById("name").value;
+        document.getElementById("summary-dob").innerText =
+          document.getElementById("dob").value;
+        document.getElementById("summary-gender").innerText =
+          document.getElementById("gender").value;
+        document.getElementById("summary-email").innerText =
+          document.getElementById("email").value;
+        document.getElementById("summary-phone").innerText =
+          document.getElementById("phone").value;
+        document.getElementById("summary-address").innerText =
+          document.getElementById("address").value;
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        loadFormData();
+        showStep(currentStep);
+      });
+    </script>
+  </body>
+</html>
